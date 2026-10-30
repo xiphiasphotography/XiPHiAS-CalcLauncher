@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["build", "${workspaceFolder}/XiPHiAS.CalcLauncher.csproj", "-c", "Release"],
+      "problemMatcher": "$msCompile",
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "publish: kleine EXE (x64, .NET 10 vereist)",
+      "type": "process",
+      "command": "dotnet",
+      "args": ["publish", "${workspaceFolder}/XiPHiAS.CalcLauncher.csproj", "-c", "Release", "-r", "win-x64", "--self-contained", "false", "-p:PublishSingleFile=true", "-o", "${workspaceFolder}/publish/win-x64"],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

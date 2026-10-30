@@ -1,75 +1,75 @@
 # XiPHiAS.CalcLauncher
 
-Kleine C# Windows-app zonder console, bedoeld voor de calculator-toets van de Logitech MX Keys S. Vereist Windows 11 met Microsoft Windows Calculator. Start de app als gewone gebruiker.
+A small C# Windows application with no console window, designed for the calculator key on the Logitech MX Keys S. Requires Windows 11 with Microsoft Windows Calculator installed. Run the launcher as a standard user.
 
-## Openen in VS Code
+## Open in VS Code
 
-Open de map `D:\Users\michael\GitHub\xiphias-calclauncher` via **File > Open Folder**. Een .NET 10 SDK is nodig om te bouwen. C#-ondersteuning in VS Code is handig voor bewerken; bouwen kan rechtstreeks in de geïntegreerde PowerShell-terminal.
+Clone or download this repository and open its folder using **File > Open Folder**. Building requires the .NET 10 SDK. C# support in VS Code is useful for editing; you can build directly in the integrated PowerShell terminal.
 
-Alle onderstaande opdrachten voer je uit in die projectmap.
+Run all commands below from the project folder.
 
 ```powershell
 dotnet build .\XiPHiAS.CalcLauncher.csproj -c Release
 ```
 
-## Publiceren
+## Publish
 
-Kleine, enkele EXE voor een x64-pc waarop de .NET 10 runtime aanwezig is:
+Create a small, single executable for an x64 PC with the .NET 10 runtime installed:
 
 ```powershell
 dotnet publish .\XiPHiAS.CalcLauncher.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o .\publish\win-x64
 ```
 
-Gebruik daarna `publish\win-x64\XiPHiAS.CalcLauncher.exe`. Deze EXE bevat geen eigen .NET runtime. De .NET 10 SDK installeert ook een geschikte runtime.
+Use `publish\win-x64\XiPHiAS.CalcLauncher.exe`. This executable does not include its own .NET runtime. The .NET 10 SDK also installs a compatible runtime.
 
-Voor een pc zonder .NET: onderstaande variant bundelt de runtime en is daardoor aanzienlijk groter. Native runtimebestanden worden bij gebruik uitgepakt onder de standaard .NET extractiemap van de gebruiker.
+For a PC without .NET, the following variant includes the runtime and is considerably larger. When the application runs, native runtime files are extracted to the user's default .NET extraction directory.
 
 ```powershell
 dotnet publish .\XiPHiAS.CalcLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o .\publish\standalone-win-x64
 ```
 
-Voor Windows op ARM vervang je `win-x64` door `win-arm64` en kies je een aparte uitvoermap. Publiceren kan internettoegang vereisen om runtimepacks op te halen. Bij runtime-updates moet je de standalone variant opnieuw publiceren.
+For Windows on ARM, replace `win-x64` with `win-arm64` and choose a separate output folder. Publishing may require internet access to download runtime packs. Republish the standalone variant to incorporate runtime updates.
 
-## Logitech-toets instellen
+## Configure the Logitech key
 
-Selecteer in Logi Options+ de MX Keys S en de calculator-toets. Kies, als jouw versie die actie aanbiedt, het openen van een toepassing en selecteer de gepubliceerde `XiPHiAS.CalcLauncher.exe` via het volledige pad. De benaming van die actie kan verschillen per Options+-versie. Gebruik de algemene toewijzing en controleer eventuele app-specifieke toewijzingen.
+In Logi Options+, select the MX Keys S and its calculator key. If your version offers an action to open an application, choose it and select the published `XiPHiAS.CalcLauncher.exe` using its full path. The action's name may differ between Options+ versions. Use the general key assignment and check any application-specific overrides.
 
-De toets moet uitsluitend deze launcher starten. Laat geen tweede toewijzing actief die daarnaast rechtstreeks Calculator opent. Kies de EXE zelf, zonder een PowerShell- of terminalvenster ertussen. Bewaar de publicatiemap op een vaste locatie. Er draait geen achtergrondservice; de launcher sluit na iedere toetsdruk af.
+The key should launch only this executable. Remove any additional assignment that also opens Calculator directly. Select the executable itself, without an intermediate PowerShell or terminal window. Keep the published application in a permanent folder. No background service runs; the launcher exits after each key press.
 
-## Werking en grenzen
+## How it works and limitations
 
-- Een sessiegebonden mutex laat maar één launcher tegelijk starten. Tijdens het wachten op Calculator worden volgende launcher-aanroepen genegeerd.
-- De launcher zoekt zichtbare hoofdvensters op proces-app-identiteit (`Microsoft.WindowsCalculator_8wekyb3d8bbwe!App`), onafhankelijk van de venstertitel of Windows-taal. Hij onderzoekt ook kindvensters: bij oudere Store-hosting kan het hoofdvenster van `ApplicationFrameHost.exe` zijn en het kindvenster van Calculator. Het hoofdvenster wordt geactiveerd.
-- Bij meerdere bestaande Calculator-vensters wordt de instantie met de nieuwste processtarttijd hergebruikt. De launcher leest ook de app-identiteit van het hostvenster zelf, slaat door DWM verborgen (cloaked) vensters over en koppelt hostvensters via kindvensters of owned helpervensters aan het Calculator-proces. Bij gelijke/onbekende starttijd geldt de bestaande venstervolgorde. Als een Calculator-versie meerdere vensters in hetzelfde proces onderbrengt, kan hun onderlinge aanmaaktijd hiermee niet worden bepaald. De launcher sluit geen vensters en bewaart bestaande berekeningen.
-- Een bestaand venster wordt hersteld indien geminimaliseerd en via `SetForegroundWindow` geactiveerd. Windows stuurt toetsenbordinvoer vervolgens naar de actieve app. Er worden geen cijfers of andere toetsen gesimuleerd en de bestaande invoerfocus binnen Calculator wordt behouden. Als bijvoorbeeld een zoekveld in Calculator actief was, kan dat veld actief blijven.
-- Als geen venster bestaat, controleert hij of Calculator nog start. Anders start hij precies eenmaal de systeem-`calc.exe` en wacht maximaal 15 seconden op het echte venster. Het proces van `calc.exe` hoeft zelf geen hoofdvenster te krijgen: het kan alleen een doorverwijzer zijn.
-- Windows beslist of focusoverdracht is toegestaan. De launcher probeert kort opnieuw en controleert de daadwerkelijke voorgrond. Bij weigering knippert de taakbalkknop en wordt een logregel geschreven. Automatische focus is daardoor niet onder alle omstandigheden gegarandeerd, bijvoorbeeld vanuit Options+, bij actieve menu's of een vergrendelde sessie. Er worden geen focusinstellingen in het register aangepast. `AttachThreadInput` wordt bewust vermeden omdat gekoppelde invoerwachtrijen kunnen vastlopen.
-- De mutex voorkomt dubbele starts door deze launcher. Hij kan niet voorkomen dat een andere toepassing of een gelijktijdige handmatige actie ook Calculator opent. Een vastgelopen of vensterloos Calculator-proces wordt niet beëindigd; sluit het zelf via Taakbeheer als het starten blijft hangen.
-- Virtuele bureaubladen en beveiligde bureaubladen worden niet beheerd. Test op hetzelfde gewone bureaublad. Voer ook Options+, Calculator en de launcher op hetzelfde normale rechtenniveau uit. Er is geen administratorrecht nodig.
+- A session-local mutex allows only one launcher instance at a time. Further invocations are ignored while the launcher is waiting for Calculator.
+- The launcher identifies visible top-level windows by their process application identity (`Microsoft.WindowsCalculator_8wekyb3d8bbwe!App`), independently of window titles or the Windows display language. It also checks child windows: in older Store app hosting models, the top-level window may belong to `ApplicationFrameHost.exe` while a child belongs to Calculator. The top-level window is activated.
+- When multiple Calculator windows exist, the instance with the most recent process start time is reused. The launcher also reads the host window's own application identity, skips windows hidden (cloaked) by DWM, and associates host windows with Calculator processes through child windows or owned helper windows. Equal or unavailable start times fall back to the existing window order. If a Calculator version hosts multiple windows in one process, their individual creation times cannot be determined this way. The launcher closes no windows and preserves existing calculations.
+- An existing window is restored if minimized and activated using `SetForegroundWindow`. Windows then directs keyboard input to the active application. No digits or other keys are simulated, and Calculator's existing internal input focus is preserved. For example, a search field that already had focus may retain it.
+- If no window exists, the launcher checks whether Calculator is still starting. Otherwise, it starts the system `calc.exe` exactly once and waits up to 15 seconds for the actual window. The `calc.exe` process itself does not need to acquire a main window: it may only forward the launch request.
+- Windows decides whether foreground activation is allowed. The launcher retries briefly and checks the actual foreground window. If activation is denied, it flashes the taskbar button and writes a log entry. Automatic focus therefore cannot be guaranteed in every situation, such as when launched through Options+, while menus are active, or in a locked session. No registry focus settings are changed. `AttachThreadInput` is deliberately avoided because attaching input queues can cause hangs.
+- The mutex prevents overlapping launches by this launcher. It cannot prevent another application or a simultaneous manual action from also opening Calculator. An unresponsive Calculator process or one without a window is not terminated; close it manually in Task Manager if startup remains stuck.
+- Virtual desktops and secure desktops are not managed. Test on the same regular desktop. Run Options+, Calculator, and the launcher at the same standard user privilege level. Administrator privileges are not required.
 
-## Handmatig testen
+## Manual testing
 
-Voer eerst de gepubliceerde EXE uit via Verkenner, daarna via de toegewezen Logitech-toets. Typ pas nadat Calculator zichtbaar vooraan staat.
+First run the published executable from File Explorer, then through the assigned Logitech key. Wait until Calculator is visibly in the foreground before typing.
 
-| Situatie | Actie en verwacht resultaat |
+| Scenario | Action and expected result |
 | --- | --- |
-| Geen Calculator open | Sluit alle Calculator-vensters. Druk eenmaal: één venster verschijnt. Typ `12+3` en Enter: resultaat 15. |
-| Calculator achter een andere app | Laat een herkenbare berekening staan, schakel naar Kladblok, druk de toets: hetzelfde venster en dezelfde berekening komen vooraan. Typen gaat naar Calculator. |
-| Geminimaliseerd | Minimaliseer Calculator en druk de toets: hetzelfde venster wordt hersteld en ontvangt invoer. |
-| Gemaximaliseerd | Maximaliseer Calculator, wissel van app en druk de toets: de venstergrootte blijft behouden. |
-| Snel herhalen | Begin zonder Calculator en druk 10 keer snel: één Calculator-venster. Herhaal met een bestaand venster. |
-| Meerdere vensters vooraf | Open drie Calculator-vensters na elkaar met verschillende berekeningen. Breng het oudste naar voren, wissel naar Kladblok en druk de toets: de laatst geopende Calculator komt vooraan, zonder vierde venster. Minimaliseer die en herhaal. Sluit vervolgens de nieuwste: de eerstvolgende nieuwste wordt gebruikt. |
-| Andere taal of rekenmodus | Test bijvoorbeeld Wetenschappelijk en een andere Windows-taal: herkenning blijft werken zonder titelvergelijking. |
-| Focus geweigerd | Test vanuit een app met een geopend menu. Windows mag de focus weigeren: er komt geen extra Calculator; controleer taakbalk en log. Sluit het menu en probeer opnieuw. |
-| Koude start | Herhaal na afmelden/herstarten, met Options+ actief. Controleer vooral de eerste toetsdruk. |
+| No Calculator open | Close all Calculator windows. Press the key once: one window appears. Type `12+3` and press Enter: the result is 15. |
+| Calculator behind another app | Leave a recognizable calculation visible, switch to Notepad, and press the key: the same window and calculation come to the foreground. Typing goes to Calculator. |
+| Minimized | Minimize Calculator and press the key: the same window is restored and receives input. |
+| Maximized | Maximize Calculator, switch applications, and press the key: its maximized state is preserved. |
+| Rapid repeated presses | Start with no Calculator open and press the key 10 times quickly: one Calculator window appears. Repeat with an existing window. |
+| Multiple existing windows | Open three Calculator windows in sequence with different calculations. Bring the oldest one forward, switch to Notepad, and press the key: the most recently opened Calculator comes forward, without a fourth window. Minimize it and repeat. Then close the newest one: the next most recent instance is used. |
+| Different language or mode | Test Scientific mode and a different Windows display language: detection still works without matching window titles. |
+| Focus denied | Test from an application with an open menu. Windows may deny focus: no additional Calculator is opened; check the taskbar and log. Close the menu and try again. |
+| Cold start | Repeat after signing out or restarting, with Options+ running. Pay particular attention to the first key press. |
 
-Als cijfers in Kladblok blijven verschijnen, is de test mislukt: controleer het log en de directe Logitech-toewijzing. Een geslaagde build bewijst de focusoverdracht op jouw machine niet.
+If digits still appear in Notepad, the test has failed: check the log and the direct Logitech key assignment. A successful build does not prove that focus transfer works on your machine.
 
-Log: `%LOCALAPPDATA%\XiPHiAS.CalcLauncher\launcher.log`. Normaal worden alleen fouten gelogd. Met `XiPHiAS.CalcLauncher.exe --diagnose` schrijft de launcher de gevonden hostvensters, gekoppelde proces-ID's, starttijden en gekozen venster naar de log, zonder Calculator te starten of de focus te veranderen. De log wordt bij ongeveer 256 KB opnieuw begonnen. Exitcodes: 0 = focus gelukt, diagnose voltooid of overlappende aanroep genegeerd; 1 = start/detectie/fout; 2 = Windows heeft focus niet verleend.
+Log file: `%LOCALAPPDATA%\XiPHiAS.CalcLauncher\launcher.log`. Normally, only errors are logged. Running `XiPHiAS.CalcLauncher.exe --diagnose` logs the detected host windows, associated process IDs, start times, and selected window without launching Calculator or changing focus. The log is restarted at approximately 256 KB. Exit codes: 0 = focus acquired, diagnostics completed, or overlapping invocation ignored; 1 = startup, detection, or other error; 2 = Windows did not grant foreground focus.
 
-## Technische bronnen
+## Technical references
 
-- [Microsoft: SetForegroundWindow en de focusrestricties](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow)
-- [Microsoft: app-identiteiten / AUMID](https://learn.microsoft.com/en-us/windows/configuration/store/find-aumid)
-- [Microsoft: risico's van AttachThreadInput](https://devblogs.microsoft.com/oldnewthing/20080801-00/?p=21393)
-- [Microsoft: publiceren als enkele EXE](https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/)
+- [Microsoft: SetForegroundWindow and foreground restrictions](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow)
+- [Microsoft: application identities / AUMID](https://learn.microsoft.com/en-us/windows/configuration/store/find-aumid)
+- [Microsoft: the risks of AttachThreadInput](https://devblogs.microsoft.com/oldnewthing/20080801-00/?p=21393)
+- [Microsoft: publishing a single executable](https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/)

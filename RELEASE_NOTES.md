@@ -1,39 +1,39 @@
 # CalcLauncher 1.0
 
-XiPHiAS CalcLauncher 1.0.0, een kleine Windows-app voor de calculator-toets van de Logitech MX Keys S.
+XiPHiAS CalcLauncher 1.0.0 is a small Windows application for the calculator key on the Logitech MX Keys S.
 
-## Nieuw sinds 0.9
+## New since 0.9
 
-- Bij meerdere Calculator-vensters wordt de instantie met de nieuwste processtarttijd geactiveerd, met behoud van bestaande berekeningen.
-- Verbeterde herkenning van Calculator in gehoste vensters, inclusief koppeling via kindvensters en owned helpervensters.
-- Door DWM verborgen (cloaked) vensters worden overgeslagen.
-- Nieuwe optie `--diagnose` logt gevonden vensters, gekoppelde processen, starttijden en het gekozen venster zonder Calculator te starten of de focus te veranderen.
+- When multiple Calculator windows exist, the instance with the most recent process start time is activated, preserving existing calculations.
+- Improved detection of Calculator in hosted windows, including associations through child windows and owned helper windows.
+- Windows hidden (cloaked) by DWM are skipped.
+- The new `--diagnose` option logs detected windows, associated processes, start times, and the selected window without launching Calculator or changing focus.
 
-## Functies
+## Features
 
-- Start Microsoft Windows Calculator of brengt een bestaand venster naar voren.
-- Herstelt geminimaliseerde vensters en behoudt bestaande berekeningen.
-- Herkent Calculator via app-identiteit, onafhankelijk van venstertitel en Windows-taal.
-- Voorkomt overlappende starts via een sessiegebonden mutex.
-- Werkt zonder consolevenster, achtergrondservice of administratorrechten.
-- Logt fouten en geweigerde focusoverdracht in `%LOCALAPPDATA%\XiPHiAS.CalcLauncher\launcher.log`.
+- Starts Microsoft Windows Calculator or brings an existing window to the foreground.
+- Restores minimized windows and preserves existing calculations.
+- Identifies Calculator by application identity, independently of window titles and the Windows display language.
+- Prevents overlapping launches using a session-local mutex.
+- Runs without a console window, background service, or administrator privileges.
+- Logs errors and denied foreground activation to `%LOCALAPPDATA%\XiPHiAS.CalcLauncher\launcher.log`.
 
-## Downloads en installatie
+## Downloads and installation
 
-Vereist Windows 11 x64 met Microsoft Windows Calculator.
+Requires Windows 11 x64 with Microsoft Windows Calculator installed.
 
-- **XiPHiAS.CalcLauncher-1.0.0-win-x64.zip**: kleine EXE; vereist de .NET 10 runtime.
-- **XiPHiAS.CalcLauncher-1.0.0-standalone-win-x64.zip**: bevat de .NET-runtime; geen afzonderlijke .NET-installatie nodig.
-- **SHA256SUMS.txt**: SHA-256-controlesommen van beide ZIP-bestanden.
+- **XiPHiAS.CalcLauncher-1.0.0-win-x64.zip**: small executable; requires the .NET 10 runtime.
+- **XiPHiAS.CalcLauncher-1.0.0-standalone-win-x64.zip**: includes the .NET runtime; no separate .NET installation is required.
+- **SHA256SUMS.txt**: SHA-256 checksums for both ZIP files.
 
-Pak een ZIP uit op een vaste locatie. Wijs in Logi Options+ de calculator-toets rechtstreeks toe aan `XiPHiAS.CalcLauncher.exe`. Zie de README voor de instellingen en handmatige testscenario's.
+Extract a ZIP file to a permanent folder. In Logi Options+, assign the calculator key directly to `XiPHiAS.CalcLauncher.exe`. See the README for configuration instructions and manual test scenarios.
 
-## Bekende beperkingen
+## Known limitations
 
-Windows kan voorgrondfocus weigeren. De launcher laat dan de taakbalkknop knipperen en schrijft een logregel. Een vastgelopen Calculator-proces wordt niet afgesloten. Virtuele en beveiligde bureaubladen worden niet beheerd.
+Windows may deny foreground focus. If this happens, the launcher flashes the taskbar button and writes a log entry. An unresponsive Calculator process is not terminated. Virtual desktops and secure desktops are not managed.
 
-Wanneer meerdere vensters hetzelfde Calculator-proces delen, kan hun onderlinge aanmaaktijd niet worden bepaald. Bij gelijke of onbekende processtarttijd wordt de bestaande venstervolgorde gebruikt.
+When multiple windows share the same Calculator process, their individual creation times cannot be determined. Equal or unavailable process start times fall back to the existing window order.
 
-## Validatie
+## Validation
 
-Release-build en publicatie van beide x64-varianten gecontroleerd. De interactieve focusoverdracht en Logitech-toewijzing moeten op de doelcomputer worden getest volgens de README.
+The Release build and publishing of both x64 variants have been checked. Interactive focus transfer and the Logitech key assignment must be tested on the target computer using the README instructions.

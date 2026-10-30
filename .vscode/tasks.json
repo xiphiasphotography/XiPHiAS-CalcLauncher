@@ -10,7 +10,7 @@
       "group": { "kind": "build", "isDefault": true }
     },
     {
-      "label": "publish: kleine EXE (x64, .NET 10 vereist)",
+      "label": "publish: small executable (x64, .NET 10 required)",
       "type": "process",
       "command": "dotnet",
       "args": ["publish", "${workspaceFolder}/XiPHiAS.CalcLauncher.csproj", "-c", "Release", "-r", "win-x64", "--self-contained", "false", "-p:PublishSingleFile=true", "-o", "${workspaceFolder}/publish/win-x64"],

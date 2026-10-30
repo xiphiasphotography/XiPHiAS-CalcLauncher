@@ -40,7 +40,7 @@ De toets moet uitsluitend deze launcher starten. Laat geen tweede toewijzing act
 
 - Een sessiegebonden mutex laat maar één launcher tegelijk starten. Tijdens het wachten op Calculator worden volgende launcher-aanroepen genegeerd.
 - De launcher zoekt zichtbare hoofdvensters op proces-app-identiteit (`Microsoft.WindowsCalculator_8wekyb3d8bbwe!App`), onafhankelijk van de venstertitel of Windows-taal. Hij onderzoekt ook kindvensters: bij oudere Store-hosting kan het hoofdvenster van `ApplicationFrameHost.exe` zijn en het kindvenster van Calculator. Het hoofdvenster wordt geactiveerd.
-- Bij meerdere bestaande Calculator-vensters wordt het voorste gevonden venster hergebruikt; de launcher sluit geen vensters en bewaart dus bestaande berekeningen.
+- Bij meerdere bestaande Calculator-vensters wordt de instantie met de nieuwste processtarttijd hergebruikt. De launcher leest ook de app-identiteit van het hostvenster zelf, slaat door DWM verborgen (cloaked) vensters over en koppelt hostvensters via kindvensters of owned helpervensters aan het Calculator-proces. Bij gelijke/onbekende starttijd geldt de bestaande venstervolgorde. Als een Calculator-versie meerdere vensters in hetzelfde proces onderbrengt, kan hun onderlinge aanmaaktijd hiermee niet worden bepaald. De launcher sluit geen vensters en bewaart bestaande berekeningen.
 - Een bestaand venster wordt hersteld indien geminimaliseerd en via `SetForegroundWindow` geactiveerd. Windows stuurt toetsenbordinvoer vervolgens naar de actieve app. Er worden geen cijfers of andere toetsen gesimuleerd en de bestaande invoerfocus binnen Calculator wordt behouden. Als bijvoorbeeld een zoekveld in Calculator actief was, kan dat veld actief blijven.
 - Als geen venster bestaat, controleert hij of Calculator nog start. Anders start hij precies eenmaal de systeem-`calc.exe` en wacht maximaal 15 seconden op het echte venster. Het proces van `calc.exe` hoeft zelf geen hoofdvenster te krijgen: het kan alleen een doorverwijzer zijn.
 - Windows beslist of focusoverdracht is toegestaan. De launcher probeert kort opnieuw en controleert de daadwerkelijke voorgrond. Bij weigering knippert de taakbalkknop en wordt een logregel geschreven. Automatische focus is daardoor niet onder alle omstandigheden gegarandeerd, bijvoorbeeld vanuit Options+, bij actieve menu's of een vergrendelde sessie. Er worden geen focusinstellingen in het register aangepast. `AttachThreadInput` wordt bewust vermeden omdat gekoppelde invoerwachtrijen kunnen vastlopen.
@@ -58,14 +58,14 @@ Voer eerst de gepubliceerde EXE uit via Verkenner, daarna via de toegewezen Logi
 | Geminimaliseerd | Minimaliseer Calculator en druk de toets: hetzelfde venster wordt hersteld en ontvangt invoer. |
 | Gemaximaliseerd | Maximaliseer Calculator, wissel van app en druk de toets: de venstergrootte blijft behouden. |
 | Snel herhalen | Begin zonder Calculator en druk 10 keer snel: één Calculator-venster. Herhaal met een bestaand venster. |
-| Meerdere vensters vooraf | Open zelf twee Calculator-vensters. Druk de toets: een bestaand venster wordt gebruikt, geen derde venster. |
+| Meerdere vensters vooraf | Open drie Calculator-vensters na elkaar met verschillende berekeningen. Breng het oudste naar voren, wissel naar Kladblok en druk de toets: de laatst geopende Calculator komt vooraan, zonder vierde venster. Minimaliseer die en herhaal. Sluit vervolgens de nieuwste: de eerstvolgende nieuwste wordt gebruikt. |
 | Andere taal of rekenmodus | Test bijvoorbeeld Wetenschappelijk en een andere Windows-taal: herkenning blijft werken zonder titelvergelijking. |
 | Focus geweigerd | Test vanuit een app met een geopend menu. Windows mag de focus weigeren: er komt geen extra Calculator; controleer taakbalk en log. Sluit het menu en probeer opnieuw. |
 | Koude start | Herhaal na afmelden/herstarten, met Options+ actief. Controleer vooral de eerste toetsdruk. |
 
 Als cijfers in Kladblok blijven verschijnen, is de test mislukt: controleer het log en de directe Logitech-toewijzing. Een geslaagde build bewijst de focusoverdracht op jouw machine niet.
 
-Log: `%LOCALAPPDATA%\XiPHiAS.CalcLauncher\launcher.log`. Alleen fouten worden gelogd. De log wordt bij ongeveer 256 KB opnieuw begonnen. Exitcodes: 0 = focus gelukt of overlappende aanroep genegeerd; 1 = start/detectie/fout; 2 = Windows heeft focus niet verleend.
+Log: `%LOCALAPPDATA%\XiPHiAS.CalcLauncher\launcher.log`. Normaal worden alleen fouten gelogd. Met `XiPHiAS.CalcLauncher.exe --diagnose` schrijft de launcher de gevonden hostvensters, gekoppelde proces-ID's, starttijden en gekozen venster naar de log, zonder Calculator te starten of de focus te veranderen. De log wordt bij ongeveer 256 KB opnieuw begonnen. Exitcodes: 0 = focus gelukt, diagnose voltooid of overlappende aanroep genegeerd; 1 = start/detectie/fout; 2 = Windows heeft focus niet verleend.
 
 ## Technische bronnen
 

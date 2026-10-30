@@ -10,7 +10,7 @@ internal static class Program
         "XiPHiAS.CalcLauncher", "launcher.log");
 
     [STAThread]
-    private static int Main()
+    private static int Main(string[] args)
     {
         // Keep the lock through startup and focus, including a short debounce period.
         using var mutex = new Mutex(false, @"Local\XiPHiAS.CalcLauncher");
@@ -20,6 +20,12 @@ internal static class Program
             try { acquired = mutex.WaitOne(0); }
             catch (AbandonedMutexException) { acquired = true; }
             if (!acquired) return 0;
+
+            if (args.Contains("--diagnose", StringComparer.OrdinalIgnoreCase))
+            {
+                Log(CalculatorWindows.Describe());
+                return 0;
+            }
 
             var window = FindCalculator();
             if (window == 0)
@@ -94,39 +100,10 @@ internal static class Program
 
     private static nint FindCalculator()
     {
-        nint result = 0;
-        var cache = new Dictionary<uint, bool>();
-        bool Matches(nint window)
-        {
-            Native.GetWindowThreadProcessId(window, out uint pid);
-            if (!cache.TryGetValue(pid, out bool match))
-                cache[pid] = match = IsCalculatorProcess(pid);
-            return match;
-        }
-        // EnumWindows is in Z order: reuse the frontmost existing Calculator.
-        Native.EnumWindows((window, _) =>
-        {
-            if (!Native.IsWindowVisible(window) || Native.GetWindow(window, 4) != 0) return true;
-            bool match = Matches(window);
-            if (!match)
-            {
-                // Older Store builds: the top-level HWND belongs to ApplicationFrameHost,
-                // while a descendant belongs to CalculatorApp. Activate the top-level HWND.
-                Native.EnumChildWindows(window, (child, _) =>
-                {
-                    if (!Matches(child)) return true;
-                    match = true;
-                    return false;
-                }, 0);
-            }
-            if (!match) return true;
-            result = window;
-            return false;
-        }, 0);
-        return result;
+        return CalculatorWindows.FindNewest();
     }
 
-    private static bool IsCalculatorProcess(uint pid)
+    internal static bool IsCalculatorProcess(uint pid)
     {
         nint process = Native.OpenProcess(0x1000, false, pid);
         if (process == 0) return false;
@@ -153,7 +130,7 @@ internal static class Program
     }
 }
 
-internal static class Native
+internal static partial class Native
 {
     internal delegate bool EnumProc(nint hwnd, nint parameter);
     [DllImport("user32.dll")] internal static extern bool EnumWindows(EnumProc callback, nint parameter);
